@@ -4,6 +4,8 @@ bo.gg is an open source calorie tracker
 I needed a dead simple way to log my activity and my calorie
 intake.
 
+[![Build Status](https://travis-ci.org/ben174/bogg.svg?branch=master)](https://travis-ci.org/ben174/bogg)
+
 It is meant to make tracking your daily calorie intake simple.
 -----------------------------------------------------------
 
