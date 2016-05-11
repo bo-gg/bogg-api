@@ -3,28 +3,39 @@ import datetime
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from track.models import Bogger, CalorieEntry, DailyEntry
+from track.models import Bogger, CalorieEntry, DailyEntry, Measurement
 
 class BoggerTest(TestCase):
     def setUp(self):
+        self.today = datetime.datetime.today()
         self.dude = User.objects.create(username='dude')
-        self.bogger_dude = Bogger.objects.create(user=self.dude, gender='M')
+        self.bogger_dude = Bogger.objects.create(
+            user=self.dude,
+            gender='M',
+            birthdate=datetime.datetime.now() - datetime.timedelta(days=365.25*35),
+        )
         self.dude_measurement = Measurement.objects.create(
+            bogger=self.bogger_dude,
             height=(6 * 12) + 2,    # 6'2"
             weight=180,
-            birthdate=datetime.datetime.now() - datetime.timedelta(days=365.25*35),
             activity_factor=1.2,
             daily_weight_goal=(2. / 7.),
+            date=self.today,
         )
 
         self.chick = User.objects.create(username='chick')
-        self.bogger_chick = Bogger.objects.create(user=self.chick, gender='F')
+        self.bogger_chick = Bogger.objects.create(
+            user=self.chick,
+            gender='F',
+            birthdate=datetime.datetime.now() - datetime.timedelta(days=365.25*28),
+        )
         self.chick_measurement = Measurement.objects.create(
+            bogger=self.bogger_chick,
             height=(5 * 12) + 3,    # 5'3"
             weight=120,
-            birthdate=datetime.datetime.now() - datetime.timedelta(days=365.25*28),
             activity_factor=1.9,
             daily_weight_goal=(1. / 7.),
+            date=self.today,
         )
 
     def test_readonly_fields(self):

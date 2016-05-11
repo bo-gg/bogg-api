@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import logging
 
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from datetime import date
@@ -11,8 +11,7 @@ from datetime import date
 from util import formulas
 
 
-class Bogger(models.Model):
-    ''' A bogg user '''
+class Choices:
     # gender
     MALE = 'M'
     FEMALE = 'F'
@@ -21,15 +20,40 @@ class Bogger(models.Model):
         (FEMALE, 'Female'),
     )
 
+    # activity factor
+    SEDENTARY = '1.2'
+    LIGHTLY_ACTIVE = '1.375'
+    MODERATELY_ACTIVE = '1.55'
+    VERY_ACTIVE = '1.725'
+    EXTRA_ACTIVE = '1.9'
+    ACTIVITY_FACTOR_CHOICES = (
+        (SEDENTARY, 'Sedentary'),
+        (LIGHTLY_ACTIVE, 'Lightly Active'),
+        (MODERATELY_ACTIVE, 'Moderately Active'),
+        (VERY_ACTIVE, 'Very Active'),
+        (EXTRA_ACTIVE, 'Extra Active'),
+    )
+
+    # calorie entry type
+    CONSUMED = 'C'
+    EXPENDED = 'E'
+    CALORIE_ENTRY_TYPE_CHOICES = (
+        (CONSUMED, 'Consumed (Eaten)'),
+        (EXPENDED, 'Expended (Exercise)'),
+    )
+
+class Bogger(models.Model):
+    ''' A bogg user '''
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
+    gender = models.CharField(max_length=1, choices=Choices.GENDER_CHOICES, null=True, blank=True)
     birthdate = models.DateField(null=True, blank=True)
     auto_update_goal = models.BooleanField(default=True)
 
     # read only fields
     current_height = models.DecimalField(help_text="Height in Inches", decimal_places=2, max_digits=5, null=True, blank=True)
     current_weight = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-    current_activity_factor = models.DecimalField(max_digits=4, decimal_places=3, choices=Measurement.ACTIVITY_FACTOR_CHOICES, null=True, blank=True)
+    current_activity_factor = models.DecimalField(max_digits=4, decimal_places=3, choices=Choices.ACTIVITY_FACTOR_CHOICES, null=True, blank=True)
 
     current_daily_weight_goal = models.DecimalField(decimal_places=5, max_digits=7, null=True, blank=True)
 
@@ -45,24 +69,17 @@ class Bogger(models.Model):
 
     @property
     def current_hbe(self):
-        return formulas.caclulate_hbe(self.current_bmr, self.current_activity_factor):
+        return formulas.caclulate_hbe(self.current_bmr, self.current_activity_factor)
 
     @property
     def current_bmr(self):
-        return formulas.caclulate_bmr(self.gender, self.current_weight, self.current_height):
+        return formulas.caclulate_bmr(self.gender, self.current_weight, self.current_height)
 
 
 
 class CalorieEntry(models.Model):
-    # entry type
-    CONSUMED = 'C'
-    EXPENDED = 'E'
-    CALORIE_ENTRY_TYPE_CHOICES = (
-        (CONSUMED, 'Consumed (Eaten)'),
-        (EXPENDED, 'Expended (Exercise)'),
-    )
     bogger = models.ForeignKey(Bogger, null=False, blank=False)
-    entry_type = models.CharField(max_length=1, default=CONSUMED, choices=CALORIE_ENTRY_TYPE_CHOICES)
+    entry_type = models.CharField(max_length=1, default=Choices.CONSUMED, choices=Choices.CALORIE_ENTRY_TYPE_CHOICES)
     calories = models.IntegerField()
     note = models.CharField(max_length=255)
     dt_created = models.DateTimeField(auto_now_add=True)
@@ -90,7 +107,6 @@ def update_daily(sender, **kwargs):
 
 
 class Measurement(models.Model):
-    # activity factor
     '''
     Activity Factor
     If you are sedentary (little or no exercise) : Calorie-Calculation = BMR x 1.2
@@ -99,18 +115,6 @@ class Measurement(models.Model):
     If you are very active (hard exercise/sports 6-7 days a week) : Calorie-Calculation = BMR x 1.725
     If you are extra active (very hard exercise/sports & physical job or 2x training) : Calorie-Calculation = BMR x 1.9`
     '''
-    SEDENTARY = '1.2'
-    LIGHTLY_ACTIVE = '1.375'
-    MODERATELY_ACTIVE = '1.55'
-    VERY_ACTIVE = '1.725'
-    EXTRA_ACTIVE = '1.9'
-    ACTIVITY_FACTOR_CHOICES = (
-        (SEDENTARY, 'Sedentary'),
-        (LIGHTLY_ACTIVE, 'Lightly Active'),
-        (MODERATELY_ACTIVE, 'Moderately Active'),
-        (VERY_ACTIVE, 'Very Active'),
-        (EXTRA_ACTIVE, 'Extra Active'),
-    )
     bogger = models.ForeignKey(Bogger, null=False, blank=False)
     date = models.DateField(null=False, blank=False)
 
@@ -138,7 +142,7 @@ def update_bogger(sender, **kwargs):
     today = date.today()
     measurement = Measurement.get_measurement_for_date(today, bogger)
     bogger.current_height = measurement.height
-    bogger.current_height = measurement.weight
+    bogger.current_weight = measurement.weight
     bogger.current_activity_factor = measurement.activity_factor
     bogger.current_bmr = measurement.bmr
     bogger.current_daily_weight_goal = measurement.daily_weight_goal
