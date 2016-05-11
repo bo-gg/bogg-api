@@ -62,3 +62,5 @@ target/
 .ipynb_checkpoints
 
 venv/
+
+db.sqlite3

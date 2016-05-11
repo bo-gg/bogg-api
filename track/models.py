@@ -1,10 +1,13 @@
 from __future__ import unicode_literals
 
+import logging
+
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
 
-class BoggUser(models.Model):
+class Bogger(models.Model):
+    ''' A bogg user '''
     # gender
     MALE = 'M'
     FEMALE = 'F'
@@ -31,7 +34,6 @@ class BoggUser(models.Model):
     weight = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
     birthdate = models.DateField(null=True, blank=True)
-
     auto_update_goal = models.BooleanField(default=True)
     height = models.DecimalField(help_text="Height in Inches", decimal_places=2, max_digits=5, null=True, blank=True)
     activity_factor = models.DecimalField(max_digits=4, decimal_places=3, null=True, blank=True)
@@ -50,15 +52,17 @@ class BoggUser(models.Model):
         Women: BMR = 655 + ( 4.35 x weight in pounds ) + ( 4.7 x height in inches ) - ( 4.7 x age in years )
         Men: BMR = 66 + ( 6.23 x weight in pounds ) + ( 12.7 x height in inches ) - ( 6.8 x age in year )
         '''
+        ret = None
         if not self.weight and self.height and self.gender:
             logging.warning('Couldn\'t determine BMR because user profile is incomplete.')
             return None
-        if self.gender = 'M':
-            return 66 + (6.23 * self.weight) + (12.7 * self.height) + (6.8 * self.age)
-        elif self.gender = 'F':
-            return 655 + (4.35 * self.weight) + (4.7 * self.height) - (4.7 * self.age)
+        if self.gender == 'M':
+            ret = 66 + (6.23 * self.weight) + (12.7 * self.height) - (6.8 * self.age)
+        elif self.gender == 'F':
+            ret = 655 + (4.35 * self.weight) + (4.7 * self.height) - (4.7 * self.age)
         else:
             raise ValueError('Unexpected gender: {}'.format(self.gender))
+        return round(ret, 2)
 
     @property
     def hbe(self):
@@ -68,11 +72,14 @@ class BoggUser(models.Model):
         if not bmr and self.activity_factor:
             logging.warning('Couldn\'t determine BMR because user profile is incomplete.')
             return None
-        return bmr * activity_factor
+        return int(bmr * self.activity_factor)
 
     @property
     def calorie_goal(self):
-        return self.daily_weight_goal * 3500
+        if not self.daily_weight_goal:
+            logging.warning('Couldn\'t determine BMR because user profile is incomplete.')
+            return None
+        return self.hbe - (self.daily_weight_goal * 3500)
 
     '''
     Activity Factor
@@ -97,15 +104,27 @@ class BoggUser(models.Model):
 
 
 class CalorieEntry(models.Model):
-    # gender
+    # entry type
     CONSUMED = 'C'
     EXPENDED = 'E'
     CALORIE_ENTRY_TYPE_CHOICES = (
         (CONSUMED, 'Consumed (Eaten)'),
         (EXPENDED, 'Expended (Exercise)'),
     )
+    bogger = models.ForeignKey(Bogger, null=False, blank=False)
     entry_type = models.CharField(max_length=1, default=CONSUMED, choices=CALORIE_ENTRY_TYPE_CHOICES)
     calories = models.IntegerField()
     note = models.CharField(max_length=255)
-    dt_created = model.DateTimeField(auto_now_add=True)
-    dt_occurred = model.DateTimeField(null=False, blank=False)
+    dt_created = models.DateTimeField(auto_now_add=True)
+    dt_occurred = models.DateTimeField(null=False, blank=False)
+
+
+class DailyEntry(models.Model):
+    bogger = models.ForeignKey(Bogger, null=False, blank=False)
+    date = models.DateField(null=False, blank=False)
+    calories_consumed = models.IntegerField()
+    calories_expended = models.IntegerField()
+    weight = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('bogger', 'date')
