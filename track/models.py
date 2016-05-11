@@ -30,8 +30,9 @@ class Bogger(models.Model):
     current_height = models.DecimalField(help_text="Height in Inches", decimal_places=2, max_digits=5, null=True, blank=True)
     current_weight = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     current_activity_factor = models.DecimalField(max_digits=4, decimal_places=3, choices=Measurement.ACTIVITY_FACTOR_CHOICES, null=True, blank=True)
-    current_bmr = models.IntegerField(help_text="BMR", null=True, blank=True)
+
     current_daily_weight_goal = models.DecimalField(decimal_places=5, max_digits=7, null=True, blank=True)
+
     current_calorie_goal = models.IntegerField(null=True, blank=True)
 
     @property
@@ -41,6 +42,15 @@ class Bogger(models.Model):
             return None
         today = date.today()
         return formulas.calculate_age(self.birthdate, today)
+
+    @property
+    def current_hbe(self):
+        return formulas.caclulate_hbe(self.current_bmr, self.current_activity_factor):
+
+    @property
+    def current_bmr(self):
+        return formulas.caclulate_bmr(self.gender, self.current_weight, self.current_height):
+
 
 
 class CalorieEntry(models.Model):
@@ -109,6 +119,7 @@ class Measurement(models.Model):
     activity_factor = models.DecimalField(max_digits=4, decimal_places=3, null=True, blank=True)
     bmr = models.IntegerField(help_text="BMR", null=True, blank=True)
     daily_weight_goal = models.DecimalField(decimal_places=5, max_digits=7, null=True, blank=True)
+
     calorie_goal = models.IntegerField(null=True, blank=True)
 
     dt_created = models.DateTimeField(auto_now_add=True)
@@ -148,6 +159,7 @@ class DailyEntry(models.Model):
     bogger = models.ForeignKey(Bogger, null=False, blank=False)
     date = models.DateField(null=False, blank=False)
 
+    # read only
     calories_consumed = models.IntegerField(default=0)
     calories_expended = models.IntegerField(default=0)
 

@@ -27,15 +27,20 @@ class BoggerTest(TestCase):
             daily_weight_goal=(1. / 7.),
         )
 
-    def test_age(self):
+    def test_readonly_fields(self):
+        self.assertEqual(current_height, 72)
+        self.assertEqual(current_weight, 180)
+        self.assertEqual(current_activity_factor, 1.2)
+
+    def test_calc_current_age(self):
         self.assertEqual(self.bogger_dude.current_age, 35)
         self.assertEqual(self.bogger_chick.current_age, 28)
 
     def test_calc_male_bmr(self):
-        self.assertEqual(self.bogger_dude.bmr, 1889.2)
+        self.assertEqual(self.bogger_dude.current_bmr, 1889.2)
 
     def test_calc_female_bmr(self):
-        self.assertEqual(self.bogger_chick.bmr, 1341.5)
+        self.assertEqual(self.bogger_chick.current_bmr, 1341.5)
 
     def test_calc_hbe(self):
         self.assertEqual(self.bogger_dude.hbe, 2267)
