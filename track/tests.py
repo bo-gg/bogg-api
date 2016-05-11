@@ -2,7 +2,8 @@ import datetime
 
 from django.test import TestCase
 from django.contrib.auth.models import User
-from track.models import Bogger
+
+from track.models import Bogger, CalorieEntry, DailyEntry
 
 class BoggerTest(TestCase):
     def setUp(self):
@@ -41,3 +42,37 @@ class BoggerTest(TestCase):
     def test_calorie_goal(self):
         self.assertEqual(self.bogger_dude.calorie_goal, 1267)
         self.assertEqual(self.bogger_chick.calorie_goal, 2048)
+
+
+class DailyEntryTest(TestCase):
+    def setUp(self):
+        self.dude = User.objects.create(username='dude')
+        self.bogger_dude = Bogger.objects.create(user=self.dude, gender='M')
+        self.bogger_dude.height = (6 * 12) + 2    # 6'2"
+        self.bogger_dude.weight = 180
+        self.bogger_dude.birthdate = datetime.datetime.now() - datetime.timedelta(days=365.25*35)
+        self.bogger_dude.activity_factor = 1.2
+        self.bogger_dude.daily_weight_goal = (2. / 7.)
+        self.today = datetime.datetime.today()
+        self.now = datetime.datetime.now()
+        self.snack_entry = CalorieEntry.objects.create(
+            bogger=self.bogger_dude,
+            calories=300,
+            dt_occurred=self.now,
+            note='Silica gel',
+            entry_type = CalorieEntry.CONSUMED
+        )
+        self.run_entry = CalorieEntry.objects.create(
+            bogger=self.bogger_dude,
+            calories=-100,
+            dt_occurred=self.now,
+            note='Ran from police',
+            entry_type = CalorieEntry.EXPENDED
+        )
+
+    def test_daily_entry_creation(self):
+        daily_entry = DailyEntry.objects.get(bogger=self.bogger_dude, date=self.today)
+        self.assertEqual(300, daily_entry.calories_consumed)
+        self.assertEqual(-100, daily_entry.calories_expended)
+        self.assertEqual(200, daily_entry.net_calories)
+
