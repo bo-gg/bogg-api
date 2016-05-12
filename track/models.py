@@ -80,6 +80,9 @@ class Bogger(models.Model):
     def current_calorie_goal(self):
         return formulas.calculate_calorie_goal(self.current_hbe, self.current_daily_weight_goal)
 
+    def __unicode__(self):
+        return str(self.user)
+
 
 class CalorieEntry(models.Model):
     bogger = models.ForeignKey(Bogger, null=False, blank=False)
@@ -157,7 +160,7 @@ class Measurement(models.Model):
 
     height = models.FloatField(help_text="Height in Inches", null=True, blank=True)
     weight = models.FloatField(null=True, blank=True)
-    activity_factor = models.FloatField(null=True, blank=True)
+    activity_factor = models.FloatField(choices=Choices.ACTIVITY_FACTOR_CHOICES, null=True, blank=True)
 
     dt_created = models.DateTimeField(auto_now_add=True)
 
