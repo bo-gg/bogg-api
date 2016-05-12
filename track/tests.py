@@ -1,42 +1,50 @@
-import datetime
+from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth.models import User
 
-from track.models import Choices, Bogger, CalorieEntry, DailyEntry, Measurement
+from track.models import Choices, Bogger, CalorieEntry, DailyEntry, Measurement, Goal
 
 class BoggerTest(TestCase):
     def setUp(self):
-        self.today = datetime.datetime.today()
+        self.today = timezone.now().date()
         self.dude = User.objects.create(username='dude')
         self.bogger_dude = Bogger.objects.create(
             user=self.dude,
             gender='M',
-            birthdate=datetime.datetime.now() - datetime.timedelta(days=365.25*35),
+            birthdate=timezone.now() - timedelta(days=365.25*35),
+        )
+        self.dude_goal = Goal.objects.create(
+            bogger=self.bogger_dude,
+            date=self.today,
+            daily_weight_goal=(2. / 7.),
         )
         self.dude_measurement = Measurement.objects.create(
             bogger=self.bogger_dude,
+            date=self.today,
             height=(6 * 12) + 2,    # 6'2"
             weight=180,
             activity_factor=1.2,
-            daily_weight_goal=(2. / 7.),
-            date=self.today,
         )
 
         self.chick = User.objects.create(username='chick')
         self.bogger_chick = Bogger.objects.create(
             user=self.chick,
             gender='F',
-            birthdate=datetime.datetime.now() - datetime.timedelta(days=365.25*28),
+            birthdate=timezone.now() - timedelta(days=365.25*28),
+        )
+        self.chick_goal = Goal.objects.create(
+            bogger=self.bogger_chick,
+            date=self.today,
+            daily_weight_goal=(1. / 7.),
         )
         self.chick_measurement = Measurement.objects.create(
             bogger=self.bogger_chick,
+            date=self.today,
             height=(5 * 12) + 3,    # 5'3"
             weight=120,
             activity_factor=1.9,
-            daily_weight_goal=(1. / 7.),
-            date=self.today,
         )
 
     def test_readonly_fields(self):
@@ -62,18 +70,102 @@ class BoggerTest(TestCase):
         self.assertEqual(self.bogger_dude.current_calorie_goal, 1267)
         self.assertEqual(self.bogger_chick.current_calorie_goal, 2048)
 
+class MeasurementTest(TestCase):
+    def setUp(self):
+        self.today = timezone.now().date()
+        self.dude = User.objects.create(username='dude')
+        self.bogger = Bogger.objects.create(
+            user=self.dude,
+            gender='M',
+            birthdate=timezone.now() - timedelta(days=365.25*35),
+        )
+        self.old_measurement = Measurement.objects.create(
+            bogger=self.bogger,
+            date=self.today - timedelta(days=7),
+            height=(6 * 12) + 2,    # 6'2"
+            weight=180,
+            activity_factor=1.2,
+        )
+
+    def test_measurement(self):
+        self.assertEqual(self.bogger.current_weight, 180)
+
+    def test_measurement_update(self):
+        self.assertEqual(self.bogger.current_weight, self.old_measurement.weight)
+        new_weight = 175
+        new_measurement = Measurement.objects.create(
+            bogger=self.bogger,
+            date=self.today,
+            height=(6 * 12) + 2,    # 6'2"
+            weight=new_weight,
+            activity_factor=1.2,
+        )
+        self.assertEqual(self.bogger.current_weight, new_weight)
+
+    def test_get_measurement_for_date(self):
+        new_measurement = Measurement.objects.create(
+            bogger=self.bogger,
+            date=self.today,
+            height=(6 * 12) + 2,    # 6'2"
+            weight=175,
+            activity_factor=1.2,
+        )
+        measurement = Measurement.get_measurement_for_date(
+            self.bogger,
+            self.today-timedelta(days=6)
+        )
+        self.assertEqual(measurement.weight, 180)
+
+
+class GoalTest(TestCase):
+    def setUp(self):
+        self.today = timezone.now().date()
+        self.dude = User.objects.create(username='dude')
+        self.bogger = Bogger.objects.create(
+            user=self.dude,
+            gender='M',
+            birthdate=timezone.now() - timedelta(days=365.25*35),
+        )
+        self.old_measurement = Measurement.objects.create(
+            bogger=self.bogger,
+            date=self.today - timedelta(days=7),
+            height=(6 * 12) + 2,    # 6'2"
+            weight=180,
+            activity_factor=1.2,
+        )
+        self.old_goal = Goal.objects.create(
+            bogger=self.bogger,
+            date=self.today - timedelta(days=7),
+            daily_weight_goal=(2. / 7.),
+        )
+
+    def test_calorie_goal(self):
+        self.assertEqual(self.bogger.current_calorie_goal, 1267)
+
+    def test_goal_update(self):
+        new_goal = Goal.objects.create(
+            bogger=self.bogger,
+            date=self.today,
+            daily_weight_goal=(1. / 7.),
+        )
+        # should expect to eat more than before lowering goal
+        self.assertTrue(self.bogger.current_calorie_goal > 1267)
+
+    def test_old_goal(self):
+        new_goal = Goal.objects.create(
+            bogger=self.bogger,
+            date=self.today,
+            daily_weight_goal=(1. / 7.),
+        )
+        old_goal = Goal.get_goal_for_date(self.bogger, self.today - timedelta(days=6))
+        # should expect to eat more than before lowering goal
+        self.assertTrue(old_goal.calorie_goal < new_goal.calorie_goal)
+
 
 class DailyEntryTest(TestCase):
     def setUp(self):
         self.dude = User.objects.create(username='dude')
         self.bogger_dude = Bogger.objects.create(user=self.dude, gender='M')
-        self.bogger_dude.height = (6 * 12) + 2    # 6'2"
-        self.bogger_dude.weight = 180
-        self.bogger_dude.birthdate = datetime.datetime.now() - datetime.timedelta(days=365.25*35)
-        self.bogger_dude.activity_factor = 1.2
-        self.bogger_dude.daily_weight_goal = (2. / 7.)
-        self.today = datetime.datetime.today()
-        self.now = datetime.datetime.now()
         self.snack_entry = CalorieEntry.objects.create(
             bogger=self.bogger_dude,
             calories=300,
@@ -90,8 +182,7 @@ class DailyEntryTest(TestCase):
         )
 
     def test_daily_entry_creation(self):
-        daily_entry = DailyEntry.objects.get(bogger=self.bogger_dude, date=self.today)
+        daily_entry = DailyEntry.objects.get(bogger=self.bogger_dude, date=timezone.now().date())
         self.assertEqual(300, daily_entry.calories_consumed)
         self.assertEqual(-100, daily_entry.calories_expended)
         self.assertEqual(200, daily_entry.net_calories)
-

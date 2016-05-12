@@ -1,4 +1,3 @@
-
 def caclulate_bmr(gender, weight, height, age):
     '''
     BMR Formula
