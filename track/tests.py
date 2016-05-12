@@ -1,9 +1,10 @@
 import datetime
 
 from django.test import TestCase
+from django.utils import timezone
 from django.contrib.auth.models import User
 
-from track.models import Bogger, CalorieEntry, DailyEntry, Measurement
+from track.models import Choices, Bogger, CalorieEntry, DailyEntry, Measurement
 
 class BoggerTest(TestCase):
     def setUp(self):
@@ -39,9 +40,9 @@ class BoggerTest(TestCase):
         )
 
     def test_readonly_fields(self):
-        self.assertEqual(current_height, 72)
-        self.assertEqual(current_weight, 180)
-        self.assertEqual(current_activity_factor, 1.2)
+        self.assertEqual(self.bogger_dude.current_height, (6 * 12) + 2)
+        self.assertEqual(self.bogger_dude.current_weight, 180)
+        self.assertEqual(self.bogger_dude.current_activity_factor, 1.2)
 
     def test_calc_current_age(self):
         self.assertEqual(self.bogger_dude.current_age, 35)
@@ -54,12 +55,12 @@ class BoggerTest(TestCase):
         self.assertEqual(self.bogger_chick.current_bmr, 1341.5)
 
     def test_calc_hbe(self):
-        self.assertEqual(self.bogger_dude.hbe, 2267)
-        self.assertEqual(self.bogger_chick.hbe, 2548)
+        self.assertEqual(self.bogger_dude.current_hbe, 2267)
+        self.assertEqual(self.bogger_chick.current_hbe, 2548)
 
     def test_calorie_goal(self):
-        self.assertEqual(self.bogger_dude.calorie_goal, 1267)
-        self.assertEqual(self.bogger_chick.calorie_goal, 2048)
+        self.assertEqual(self.bogger_dude.current_calorie_goal, 1267)
+        self.assertEqual(self.bogger_chick.current_calorie_goal, 2048)
 
 
 class DailyEntryTest(TestCase):
@@ -76,16 +77,16 @@ class DailyEntryTest(TestCase):
         self.snack_entry = CalorieEntry.objects.create(
             bogger=self.bogger_dude,
             calories=300,
-            dt_occurred=self.now,
+            dt_occurred=timezone.now(),
             note='Silica gel',
-            entry_type = CalorieEntry.CONSUMED
+            entry_type = Choices.CONSUMED
         )
         self.run_entry = CalorieEntry.objects.create(
             bogger=self.bogger_dude,
             calories=-100,
-            dt_occurred=self.now,
+            dt_occurred=timezone.now(),
             note='Ran from police',
-            entry_type = CalorieEntry.EXPENDED
+            entry_type = Choices.EXPENDED
         )
 
     def test_daily_entry_creation(self):

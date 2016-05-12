@@ -1,5 +1,5 @@
 
-def caclulate_bmr(gender, weight, height):
+def caclulate_bmr(gender, weight, height, age):
     '''
     BMR Formula
     Women: BMR = 655 + ( 4.35 x weight in pounds ) + ( 4.7 x height in inches ) - ( 4.7 x age in years )
@@ -34,7 +34,7 @@ def calculate_calorie_goal(hbe, daily_weight_goal):
     best for lasting weight loss. Indeed, sustained weight loss is difficult or
     impossible without increased regular exercise.
     '''
-    return hbe - (daily_weight_goal * 3500)
+    return round(hbe - (daily_weight_goal * 3500))
 
-def caclulate_age(birthdate, date):
+def calculate_age(birthdate, date):
     return date.year - birthdate.year - ((date.month, date.day) < (birthdate.month, birthdate.day))

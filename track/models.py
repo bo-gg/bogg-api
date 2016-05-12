@@ -50,14 +50,12 @@ class Bogger(models.Model):
     birthdate = models.DateField(null=True, blank=True)
     auto_update_goal = models.BooleanField(default=True)
 
-    # read only fields
-    current_height = models.DecimalField(help_text="Height in Inches", decimal_places=2, max_digits=5, null=True, blank=True)
-    current_weight = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-    current_activity_factor = models.DecimalField(max_digits=4, decimal_places=3, choices=Choices.ACTIVITY_FACTOR_CHOICES, null=True, blank=True)
+    # read only fields (set by creating a new Measurement)
+    current_height = models.FloatField(help_text="Height in Inches", null=True, blank=True)
+    current_weight = models.FloatField(null=True, blank=True)
+    current_activity_factor = models.FloatField(choices=Choices.ACTIVITY_FACTOR_CHOICES, null=True, blank=True)
+    current_daily_weight_goal = models.FloatField(null=True, blank=True)
 
-    current_daily_weight_goal = models.DecimalField(decimal_places=5, max_digits=7, null=True, blank=True)
-
-    current_calorie_goal = models.IntegerField(null=True, blank=True)
 
     @property
     def current_age(self):
@@ -73,7 +71,11 @@ class Bogger(models.Model):
 
     @property
     def current_bmr(self):
-        return formulas.caclulate_bmr(self.gender, self.current_weight, self.current_height)
+        return formulas.caclulate_bmr(self.gender, self.current_weight, self.current_height, self.current_age)
+
+    @property
+    def current_calorie_goal(self):
+        return formulas.calculate_calorie_goal(self.current_hbe, self.current_daily_weight_goal)
 
 
 
@@ -87,23 +89,25 @@ class CalorieEntry(models.Model):
     date = models.DateField(null=False, blank=False) # auto calculated
 
     def save(self, *args, **kwargs):
-        self.date = instance.dt_occurred.date()
-        super(Blog, self).save(*args, **kwargs) # Call the "real" save() method.
+        self.date = self.dt_occurred.date()
+        super(CalorieEntry, self).save(*args, **kwargs) # Call the "real" save() method.
+
+    class Meta:
+        get_latest_by = 'dt_occurred'
 
 
 
 @receiver(pre_save, sender=CalorieEntry)
 def update_daily(sender, **kwargs):
     instance = kwargs['instance']
-    daily_entry, created = DailyEntry.objects.get_or_create(date=instance.date, bogger=instance.bogger)
-    if created:
-        # is there a DailyEntry more recent than this one which has a weight value? if so, don't enter a weight
-        pass
-    if kwargs['instance'].entry_type == CalorieEntry.CONSUMED:
+    daily_entry, _ = DailyEntry.objects.get_or_create(date=instance.date, bogger=instance.bogger)
+    if kwargs['instance'].entry_type == Choices.CONSUMED:
         daily_entry.calories_consumed += instance.calories
-    elif kwargs['instance'].entry_type == CalorieEntry.EXPENDED:
+    elif kwargs['instance'].entry_type == Choices.EXPENDED:
         daily_entry.calories_expended += instance.calories
     daily_entry.save()
+
+#TODO: class Goal?
 
 
 class Measurement(models.Model):
@@ -118,20 +122,40 @@ class Measurement(models.Model):
     bogger = models.ForeignKey(Bogger, null=False, blank=False)
     date = models.DateField(null=False, blank=False)
 
-    height = models.DecimalField(help_text="Height in Inches", decimal_places=2, max_digits=5, null=True, blank=True)
-    weight = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-    activity_factor = models.DecimalField(max_digits=4, decimal_places=3, null=True, blank=True)
-    bmr = models.IntegerField(help_text="BMR", null=True, blank=True)
-    daily_weight_goal = models.DecimalField(decimal_places=5, max_digits=7, null=True, blank=True)
+    height = models.FloatField(help_text="Height in Inches", null=True, blank=True)
+    weight = models.FloatField(null=True, blank=True)
+    activity_factor = models.FloatField(null=True, blank=True)
+    daily_weight_goal = models.FloatField(null=True, blank=True)
 
     calorie_goal = models.IntegerField(null=True, blank=True)
 
     dt_created = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def age(self):
+        ''' Age at the time the measurement was taken. '''
+        return formulas.calculate_age(self.bogger.birthdate, self.date)
+
+    @property
+    def hbe(self):
+        return formulas.caclulate_hbe(self.bmr, self.activity_factor)
+
+    @property
+    def bmr(self):
+        return formulas.caclulate_bmr(self.bogger.gender, self.weight, self.height, self.age)
+
+    @property
+    def calorie_goal(self):
+        return formulas.calculate_calorie_goal(self.hbe, self.daily_weight_goal)
+
+
     @classmethod
-    def get_measurement_for_date(cls, bogger, date):
-        latest_mesurement = cls.objects.filter(bogger=bogger, date__lte=date).latest('date')
+    def get_measurement_for_date(cls, bogger, measurement_date):
+        latest_measurement = cls.objects.filter(bogger=bogger, date__lte=measurement_date).latest()
         return latest_measurement
+
+    class Meta:
+        get_latest_by = 'date'
 
 
 @receiver(post_save, sender=Measurement)
@@ -140,23 +164,12 @@ def update_bogger(sender, **kwargs):
     # if this is the most recent instance
     bogger = instance.bogger
     today = date.today()
-    measurement = Measurement.get_measurement_for_date(today, bogger)
+    measurement = Measurement.get_measurement_for_date(bogger, today)
     bogger.current_height = measurement.height
     bogger.current_weight = measurement.weight
     bogger.current_activity_factor = measurement.activity_factor
-    bogger.current_bmr = measurement.bmr
     bogger.current_daily_weight_goal = measurement.daily_weight_goal
-    bogger.current_calorie_goal = measurement.calorie_goal
 
-    daily_entry, created = DailyEntry.objects.get_or_create(date=instance.date, bogger=instance.bogger)
-    if created:
-        # is there a DailyEntry more recent than this one which has a weight value? if so, don't enter a weight
-        pass
-    if kwargs['instance'].entry_type == CalorieEntry.CONSUMED:
-        daily_entry.calories_consumed += instance.calories
-    elif kwargs['instance'].entry_type == CalorieEntry.EXPENDED:
-        daily_entry.calories_expended += instance.calories
-    daily_entry.save()
 
 
 class DailyEntry(models.Model):
@@ -177,4 +190,5 @@ class DailyEntry(models.Model):
 
     class Meta:
         unique_together = ('bogger', 'date')
+        get_latest_by = 'date'
 
