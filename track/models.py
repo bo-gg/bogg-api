@@ -11,6 +11,9 @@ from datetime import date
 from util import formulas
 
 
+logger = logging.getLogger(__name__)
+
+
 class Choices:
     # gender
     MALE = 'M'
@@ -42,6 +45,7 @@ class Choices:
         (EXPENDED, 'Expended (Exercise)'),
     )
 
+
 class Bogger(models.Model):
     ''' A bogg user '''
 
@@ -55,7 +59,6 @@ class Bogger(models.Model):
     current_weight = models.FloatField(null=True, blank=True)
     current_activity_factor = models.FloatField(choices=Choices.ACTIVITY_FACTOR_CHOICES, null=True, blank=True)
     current_daily_weight_goal = models.FloatField(null=True, blank=True)
-
 
     @property
     def current_age(self):
@@ -78,7 +81,6 @@ class Bogger(models.Model):
         return formulas.calculate_calorie_goal(self.current_hbe, self.current_daily_weight_goal)
 
 
-
 class CalorieEntry(models.Model):
     bogger = models.ForeignKey(Bogger, null=False, blank=False)
     entry_type = models.CharField(max_length=1, default=Choices.CONSUMED, choices=Choices.CALORIE_ENTRY_TYPE_CHOICES)
@@ -96,7 +98,6 @@ class CalorieEntry(models.Model):
         get_latest_by = 'dt_occurred'
 
 
-
 @receiver(pre_save, sender=CalorieEntry)
 def update_daily(sender, **kwargs):
     instance = kwargs['instance']
@@ -107,7 +108,39 @@ def update_daily(sender, **kwargs):
         daily_entry.calories_expended += instance.calories
     daily_entry.save()
 
-#TODO: class Goal?
+
+class Goal(models.Model):
+    bogger = models.ForeignKey(Bogger, null=False, blank=False)
+    date = models.DateField(null=False, blank=False)
+    daily_weight_goal = models.FloatField(null=True, blank=True)
+    dt_created = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def calorie_goal(self):
+        try:
+            measurement = Measurement.get_measurement_for_date(self.bogger, self.date)
+        except Measurement.DoesNotExist:
+            return None
+        return formulas.calculate_calorie_goal(measurement.hbe, self.daily_weight_goal)
+
+    @classmethod
+    def get_goal_for_date(cls, bogger, goal_date):
+        latest_goal = cls.objects.filter(bogger=bogger, date__lte=goal_date).latest()
+        return latest_goal
+
+    class Meta:
+        get_latest_by = 'date'
+        unique_together = ('bogger', 'date')
+
+
+@receiver(post_save, sender=Goal)
+def goal_updates_bogger(sender, **kwargs):
+    instance = kwargs['instance']
+    bogger = instance.bogger
+    latest_goal = Goal.objects.filter(bogger=instance.bogger).latest()
+    bogger.current_daily_weight_goal = latest_goal.daily_weight_goal
+    bogger.save()
+
 
 
 class Measurement(models.Model):
@@ -125,9 +158,6 @@ class Measurement(models.Model):
     height = models.FloatField(help_text="Height in Inches", null=True, blank=True)
     weight = models.FloatField(null=True, blank=True)
     activity_factor = models.FloatField(null=True, blank=True)
-    daily_weight_goal = models.FloatField(null=True, blank=True)
-
-    calorie_goal = models.IntegerField(null=True, blank=True)
 
     dt_created = models.DateTimeField(auto_now_add=True)
 
@@ -144,11 +174,6 @@ class Measurement(models.Model):
     def bmr(self):
         return formulas.caclulate_bmr(self.bogger.gender, self.weight, self.height, self.age)
 
-    @property
-    def calorie_goal(self):
-        return formulas.calculate_calorie_goal(self.hbe, self.daily_weight_goal)
-
-
     @classmethod
     def get_measurement_for_date(cls, bogger, measurement_date):
         latest_measurement = cls.objects.filter(bogger=bogger, date__lte=measurement_date).latest()
@@ -156,20 +181,17 @@ class Measurement(models.Model):
 
     class Meta:
         get_latest_by = 'date'
+        unique_together = ('bogger', 'date')
 
 
 @receiver(post_save, sender=Measurement)
-def update_bogger(sender, **kwargs):
+def measurement_updates_bogger(sender, **kwargs):
     instance = kwargs['instance']
-    # if this is the most recent instance
     bogger = instance.bogger
-    today = date.today()
-    measurement = Measurement.get_measurement_for_date(bogger, today)
-    bogger.current_height = measurement.height
-    bogger.current_weight = measurement.weight
-    bogger.current_activity_factor = measurement.activity_factor
-    bogger.current_daily_weight_goal = measurement.daily_weight_goal
-
+    latest_measurement = Measurement.objects.filter(bogger=bogger).latest()
+    bogger.current_height = latest_measurement.height
+    bogger.current_weight = latest_measurement.weight
+    bogger.current_activity_factor = latest_measurement.activity_factor
 
 
 class DailyEntry(models.Model):
@@ -191,4 +213,3 @@ class DailyEntry(models.Model):
     class Meta:
         unique_together = ('bogger', 'date')
         get_latest_by = 'date'
-
