@@ -4,9 +4,10 @@ from rest_framework import serializers
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
+    bogger = serializers.HyperlinkedRelatedField(queryset=Bogger.objects.all(), view_name='bogger', many=False)
     class Meta:
         model = User
-        fields = ('url', 'username', 'email', 'groups')
+        fields = ('url', 'username', 'email', 'groups', 'bogger')
 
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
@@ -14,15 +15,26 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
         model = Group
         fields = ('url', 'name')
 
-class BoggerSerializer(serializers.HyperlinkedModelSerializer):
+
+class BoggerSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+    height = serializers.ReadOnlyField(source='current_height')
+    weight = serializers.ReadOnlyField(source='current_weight')
+    activity_factor = serializers.ReadOnlyField(source='current_activity_factor')
+    daily_weight_goal = serializers.ReadOnlyField(source='current_daily_weight_goal')
+
     class Meta:
         model = Bogger
         fields = (
-            'user', 'gender', 'birthdate', 'auto_update_goal', 'current_height',
-            'current_weight', 'current_activity_factor', 'current_daily_weight_goal'
+            'user', 'gender', 'birthdate', 'auto_update_goal', 'height',
+            'weight', 'activity_factor', 'daily_weight_goal'
         )
 
 class CalorieEntrySerializer(serializers.ModelSerializer):
+    bogger = BoggerSerializer(read_only=True)
+    dt_created = serializers.ReadOnlyField()
+    date = serializers.ReadOnlyField()
+
     class Meta:
         model = CalorieEntry
         fields = (
@@ -30,9 +42,7 @@ class CalorieEntrySerializer(serializers.ModelSerializer):
         )
 
 class DailyEntrySerializer(serializers.ModelSerializer):
-    author = UserSerializer(required=False)
-    calories_consumed = serializers.ReadOnlyField()
-    calories_expended = serializers.ReadOnlyField()
+    bogger = BoggerSerializer(read_only=True)
 
     class Meta:
         model = DailyEntry
@@ -41,11 +51,11 @@ class DailyEntrySerializer(serializers.ModelSerializer):
         )
 
 class GoalSerializer(serializers.ModelSerializer):
+    bogger = BoggerSerializer(read_only=True)
+    dt_created = serializers.ReadOnlyField()
+
     class Meta:
         model = Goal
         fields = (
             'bogger', 'date', 'daily_weight_goal', 'dt_created'
         )
-
-
-
