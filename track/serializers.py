@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User, Group
-from track.models import Bogger, CalorieEntry
+from track.models import Bogger, CalorieEntry, DailyEntry, Goal
 from rest_framework import serializers
 
 
@@ -28,3 +28,24 @@ class CalorieEntrySerializer(serializers.ModelSerializer):
         fields = (
             'bogger', 'entry_type', 'calories', 'note', 'dt_created', 'dt_occurred', 'date'
         )
+
+class DailyEntrySerializer(serializers.ModelSerializer):
+    author = UserSerializer(required=False)
+    calories_consumed = serializers.ReadOnlyField()
+    calories_expended = serializers.ReadOnlyField()
+
+    class Meta:
+        model = DailyEntry
+        fields = (
+            'bogger', 'date', 'calories_consumed', 'calories_expended', 'net_calories', 'calories_remaining'
+        )
+
+class GoalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Goal
+        fields = (
+            'bogger', 'date', 'daily_weight_goal', 'dt_created'
+        )
+
+
+

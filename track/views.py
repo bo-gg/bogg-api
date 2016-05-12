@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User, Group
 from django.http import Http404
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
 from rest_framework import status
 
 from track.models import Bogger, CalorieEntry
@@ -24,6 +25,21 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+
+
+class CalorieEntryViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+    """
+    queryset = CalorieEntry.objects.all()
+    serializer_class = CalorieEntrySerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 class CalorieEntryList(APIView):
