@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from datetime import date
+from django.utils import timezone
 
 from util import formulas
 
@@ -65,7 +65,7 @@ class Bogger(models.Model):
         if not self.birthdate:
             logger.warning('Unable to calculate age because no birthdate specified.')
             return None
-        today = date.today()
+        today = timezone.now().date()
         return formulas.calculate_age(self.birthdate, today)
 
     @property
