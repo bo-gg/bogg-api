@@ -1,3 +1,7 @@
 coverage==4.0.3
 Django==1.9.6
 djangorestframework==3.3.3
+dj-database-url
+gunicorn
+psycopg2
+whitenoise
