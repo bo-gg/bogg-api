@@ -31,31 +31,27 @@ class BoggerSerializer(serializers.ModelSerializer):
         )
 
 class CalorieEntrySerializer(serializers.ModelSerializer):
-    bogger = BoggerSerializer(read_only=True)
     dt_created = serializers.ReadOnlyField()
     date = serializers.ReadOnlyField()
 
     class Meta:
         model = CalorieEntry
         fields = (
-            'bogger', 'entry_type', 'calories', 'note', 'dt_created', 'dt_occurred', 'date'
+            'entry_type', 'calories', 'note', 'dt_created', 'dt_occurred', 'date'
         )
 
 class DailyEntrySerializer(serializers.ModelSerializer):
-    bogger = BoggerSerializer(read_only=True)
-
     class Meta:
         model = DailyEntry
         fields = (
-            'bogger', 'date', 'calories_consumed', 'calories_expended', 'net_calories', 'calories_remaining'
+            'date', 'calories_consumed', 'calories_expended', 'net_calories', 'calories_remaining'
         )
 
 class GoalSerializer(serializers.ModelSerializer):
-    bogger = BoggerSerializer(read_only=True)
     dt_created = serializers.ReadOnlyField()
 
     class Meta:
         model = Goal
         fields = (
-            'bogger', 'date', 'daily_weight_goal', 'dt_created'
+            'date', 'daily_weight_goal', 'dt_created'
         )
