@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from datetime import date
+from django.utils import timezone
 
 from util import formulas
 
@@ -65,7 +65,7 @@ class Bogger(models.Model):
         if not self.birthdate:
             logger.warning('Unable to calculate age because no birthdate specified.')
             return None
-        today = date.today()
+        today = timezone.now().date()
         return formulas.calculate_age(self.birthdate, today)
 
     @property
@@ -79,6 +79,9 @@ class Bogger(models.Model):
     @property
     def current_calorie_goal(self):
         return formulas.calculate_calorie_goal(self.current_hbe, self.current_daily_weight_goal)
+
+    def __unicode__(self):
+        return str(self.user)
 
 
 class CalorieEntry(models.Model):
@@ -157,7 +160,7 @@ class Measurement(models.Model):
 
     height = models.FloatField(help_text="Height in Inches", null=True, blank=True)
     weight = models.FloatField(null=True, blank=True)
-    activity_factor = models.FloatField(null=True, blank=True)
+    activity_factor = models.FloatField(choices=Choices.ACTIVITY_FACTOR_CHOICES, null=True, blank=True)
 
     dt_created = models.DateTimeField(auto_now_add=True)
 

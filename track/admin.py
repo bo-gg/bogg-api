@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from track.models import Choices, Bogger, CalorieEntry, DailyEntry, Measurement, Goal
+
+admin.site.register([Bogger, CalorieEntry, DailyEntry, Measurement, Goal])
