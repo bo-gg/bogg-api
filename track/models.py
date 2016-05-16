@@ -115,6 +115,8 @@ class CalorieEntry(models.Model):
 
     class Meta:
         get_latest_by = 'dt_occurred'
+        verbose_name = 'Calorie Entry'
+        verbose_name_plural = 'Calorie Entries'
 
 
 @receiver(pre_save, sender=CalorieEntry)
@@ -241,7 +243,8 @@ class DailyEntry(models.Model):
         ret = '{}: {}'.format(str(self.bogger.user), str(self.date))
         return ret
 
-
     class Meta:
         unique_together = ('bogger', 'date')
         get_latest_by = 'date'
+        verbose_name = 'Daily Entry'
+        verbose_name_plural = 'Daily Entries'

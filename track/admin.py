@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin
 
 from track.models import Choices, Bogger, CalorieEntry, DailyEntry, Measurement, Goal
 
-admin.site.register([Bogger, CalorieEntry, DailyEntry, Measurement, Goal])
+admin.site.register([CalorieEntry, DailyEntry, Measurement, Goal])
 
 
 admin.site.unregister(User)
