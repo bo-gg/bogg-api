@@ -83,6 +83,12 @@ class Bogger(models.Model):
     def __unicode__(self):
         return str(self.user)
 
+@receiver(post_save, sender=User)
+def user_creates_bogger(sender, **kwargs):
+    instance = kwargs['instance']
+    if not hasattr(instance, 'bogger'):
+        Bogger.objects.create(user=instance)
+
 
 class CalorieEntry(models.Model):
     bogger = models.ForeignKey(Bogger, null=False, blank=False)
