@@ -27,7 +27,8 @@ class BoggerSerializer(serializers.ModelSerializer):
         model = Bogger
         fields = (
             'user', 'gender', 'birthdate', 'auto_update_goal', 'height',
-            'weight', 'activity_factor', 'daily_weight_goal'
+            'weight', 'activity_factor', 'daily_weight_goal',
+            'current_age', 'current_hbe', 'current_bmr', 'current_calorie_goal',
         )
 
 class CalorieEntrySerializer(serializers.ModelSerializer):

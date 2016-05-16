@@ -7,10 +7,6 @@ from django.contrib.auth.models import User
 from track.models import Choices, Bogger, CalorieEntry, DailyEntry, Measurement, Goal
 
 
-def _create_birthdate(years):
-    days = (365.25 * years) + 1
-    return timezone.now() - timedelta(days=days)
-
 class BoggerTest(TestCase):
     def setUp(self):
         self.today = timezone.now().date()
@@ -183,3 +179,8 @@ class DailyEntryTest(TestCase):
         self.assertEqual(300, daily_entry.calories_consumed)
         self.assertEqual(-100, daily_entry.calories_expended)
         self.assertEqual(200, daily_entry.net_calories)
+
+
+def _create_birthdate(years):
+    days = (365.25 * years) + 1
+    return timezone.now() - timedelta(days=days)
