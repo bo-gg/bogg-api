@@ -24,11 +24,11 @@ class Choices:
     )
 
     # activity factor
-    SEDENTARY = '1.2'
-    LIGHTLY_ACTIVE = '1.375'
-    MODERATELY_ACTIVE = '1.55'
-    VERY_ACTIVE = '1.725'
-    EXTRA_ACTIVE = '1.9'
+    SEDENTARY = 1.2
+    LIGHTLY_ACTIVE = 1.375
+    MODERATELY_ACTIVE = 1.55
+    VERY_ACTIVE = 1.725
+    EXTRA_ACTIVE = 1.9
     ACTIVITY_FACTOR_CHOICES = (
         (SEDENTARY, 'Sedentary'),
         (LIGHTLY_ACTIVE, 'Lightly Active'),
@@ -83,6 +83,12 @@ class Bogger(models.Model):
     def __unicode__(self):
         return str(self.user)
 
+@receiver(post_save, sender=User)
+def user_creates_bogger(sender, **kwargs):
+    instance = kwargs['instance']
+    if not hasattr(instance, 'bogger'):
+        Bogger.objects.create(user=instance)
+
 
 class CalorieEntry(models.Model):
     bogger = models.ForeignKey(Bogger, null=False, blank=False)
@@ -93,12 +99,24 @@ class CalorieEntry(models.Model):
     dt_occurred = models.DateTimeField(null=False, blank=False)
     date = models.DateField(null=False, blank=False) # auto calculated
 
+    def __unicode__(self):
+        cals = str(self.calories)
+        if self.entry_type == Choices.EXPENDED:
+            cals = '-' + cals
+
+        ret = '{}: {}'.format(str(self.bogger.user), cals)
+        if self.note:
+            ret += ' ' + self.note
+        return ret
+
     def save(self, *args, **kwargs):
         self.date = self.dt_occurred.date()
         super(CalorieEntry, self).save(*args, **kwargs) # Call the "real" save() method.
 
     class Meta:
         get_latest_by = 'dt_occurred'
+        verbose_name = 'Calorie Entry'
+        verbose_name_plural = 'Calorie Entries'
 
 
 @receiver(pre_save, sender=CalorieEntry)
@@ -130,6 +148,10 @@ class Goal(models.Model):
     def get_goal_for_date(cls, bogger, goal_date):
         latest_goal = cls.objects.filter(bogger=bogger, date__lte=goal_date).latest()
         return latest_goal
+
+    def __unicode__(self):
+        ret = '{}: {}'.format(str(self.bogger.user), str(self.date))
+        return ret
 
     class Meta:
         get_latest_by = 'date'
@@ -182,6 +204,10 @@ class Measurement(models.Model):
         latest_measurement = cls.objects.filter(bogger=bogger, date__lte=measurement_date).latest()
         return latest_measurement
 
+    def __unicode__(self):
+        ret = '{}: {}'.format(str(self.bogger.user), str(self.date))
+        return ret
+
     class Meta:
         get_latest_by = 'date'
         unique_together = ('bogger', 'date')
@@ -213,6 +239,12 @@ class DailyEntry(models.Model):
     def calories_remaining(self):
         return self.net_calories - self.calorie_goal
 
+    def __unicode__(self):
+        ret = '{}: {}'.format(str(self.bogger.user), str(self.date))
+        return ret
+
     class Meta:
         unique_together = ('bogger', 'date')
         get_latest_by = 'date'
+        verbose_name = 'Daily Entry'
+        verbose_name_plural = 'Daily Entries'
