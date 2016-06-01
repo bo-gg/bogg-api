@@ -1,5 +1,15 @@
-bo.gg is an open source calorie tracker
-========================================
+
+
+<p align="center">
+    <a><img src="static/img/gondor.png" title="gondor logo"/></a>
+
+    <br>
+
+    <b>bo.gg is an open source calorie tracker</b>
+
+    <br>
+
+</p>
 
 I needed a dead simple way to log my activity and my calorie
 intake.
