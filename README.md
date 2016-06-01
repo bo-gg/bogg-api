@@ -1,5 +1,5 @@
 <p align="center">
-    <a><img src="static/img/bogg-logo.png" title="bogg logo"/></a>
+    <a><img src="static/img/bogg-logo.png" width="66%" title="bogg logo"/></a>
 
     <br>
 
