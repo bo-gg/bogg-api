@@ -1,7 +1,5 @@
-
-
 <p align="center">
-    <a><img src="static/img/gondor.png" title="gondor logo"/></a>
+    <a><img src="static/img/bogg-logo.png" title="bogg logo"/></a>
 
     <br>
 
