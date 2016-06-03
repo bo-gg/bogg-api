@@ -1,5 +1,7 @@
 from django.conf.urls import url, include
-from rest_framework import routers
+from rest_framework import routers, views
+from rest_framework.authtoken.views import obtain_auth_token
+
 from rest_framework.urlpatterns import format_suffix_patterns
 from track import views
 from django.contrib import admin
@@ -15,4 +17,5 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/me/', views.BoggerView.as_view()),
     url(r'^api/create/', views.CreateBoggerView.as_view()),
+    url(r'^api/token-auth/', obtain_auth_token),
 ]
