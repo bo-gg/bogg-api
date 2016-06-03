@@ -37,9 +37,6 @@ class DailyEntryViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return DailyEntry.objects.filter(bogger__user=self.request.user)
 
-    def perform_create(self, serializer):
-        serializer.save(bogger=self.request.user.bogger)
-
 
 class GoalViewSet(viewsets.ModelViewSet):
     serializer_class = GoalSerializer
