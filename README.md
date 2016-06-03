@@ -3,7 +3,7 @@
 
     <br>
 
-    <b>bo.gg is an open source calorie tracker</b>
+    <b>bo.gg is an open source calorie tracker for nerds</b>
 
     <br>
 
@@ -21,18 +21,19 @@ Entering your data should be easy and dependable.
 Otherwise, you won't do it.
 
 * I'm always in the command line, I need a very quick way to say
-  `bogg 350` to log that ham sandwich I had for lunch, or `bogg -400`
+  `bogg 350` to log that ham sandwich I had for lunch, or `bogg --exercise 400 bicycling`
   to log my bike ride.
-
-* A nice web UI to backfill data from my weekend and visualize my
-  progress.
 
 * A great, simple API so I can write my own little utilities to
   log my activity from my activity trackers, or track my weight
   from my connected scale.
 
-* Sometimes I'd like my hand held. A nice curses application should
-  guide me though backfilling data. (TODO)
+* Sometimes I'd like my hand held. A nice interactive console app
+  guide me though backfilling data.
+
+* A nice web UI to backfill data from my weekend and visualize my
+  progress. (TODO)
+
 
 Completely Open, Completely Private
 -----------------------------------
@@ -50,6 +51,30 @@ negligible and I'm happy to help out the community.
 Uptime is Critical
 -------------------
 
-More than anything, I believe in uptime. If this goes down, I know 
-I'll stop using it. As a systems architect for 15+ years, I know 
+More than anything, I believe in uptime. If this goes down, I know
+I'll stop using it. As a systems architect for 15+ years, I know
 how to keep a site up.
+
+
+Get Started
+-----------
+
+Install the `bogg-cli` application and simply run:
+
+    bogg
+
+Follow the interactive setup and you'll be ready to log via bogg.
+
+Some commands:
+
+#### Log 350 calories eaten
+
+    bogg 350
+
+#### Log 350 calories exercised via bike ride
+
+    bogg --exercise 350 "bike ride"
+
+#### Log 350 calories exercised via bike ride
+
+    bogg --exercise 350 "bike ride"
