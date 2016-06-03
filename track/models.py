@@ -236,8 +236,14 @@ class DailyEntry(models.Model):
         return self.calories_consumed + self.calories_expended
 
     @property
+    def calorie_goal(self):
+        measurement = Measurement.get_measurement_for_date(self.bogger, self.date)
+        goal = Goal.get_goal_for_date(self.bogger, self.date)
+        return formulas.calculate_calorie_goal(measurement.hbe, goal.daily_weight_goal)
+
+    @property
     def calories_remaining(self):
-        return self.net_calories - self.calorie_goal
+        return self.calorie_goal - self.net_calories
 
     def __unicode__(self):
         ret = '{}: {}'.format(str(self.bogger.user), str(self.date))

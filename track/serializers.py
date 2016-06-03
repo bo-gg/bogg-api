@@ -45,7 +45,8 @@ class DailyEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = DailyEntry
         fields = (
-            'date', 'calories_consumed', 'calories_expended', 'net_calories', 'calories_remaining'
+            'date', 'calories_consumed', 'calories_expended', 'net_calories',
+            'calories_remaining',
         )
 
 class GoalSerializer(serializers.ModelSerializer):
