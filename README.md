@@ -63,7 +63,34 @@ Install the `bogg-cli` application and simply run:
 
     bogg
 
+
 Follow the interactive setup and you'll be ready to log via bogg.
+
+
+    Choose a username: bogger
+    Enter your email: bogger@bo.gg
+    Choose a password: ****
+    Confirm password: ****
+    How many pounds do you want to lose per week? (Usually between 1.0 and 2.0): 2
+
+    The following questions are only used to calculate your basic metabolic 
+    rate and figure out how many calories you should be eating per day.
+
+    Activity Level (https://en.wikipedia.org/wiki/Physical_activity_level)
+        1. Sedentary
+        2. Lightly Active
+        3. Moderately Active
+        4. Very Active
+        5. Extra Active
+    Enter your activity level: 2
+    Gender (m/f): M
+    Enter your birthdate (YYYY-MM-DD): 1988-11-23
+    Enter your height (in inches): 72
+    Enter your weight (in pounds): 150
+    User: bogger created. Your daily calorie goal is: 2142.0
+
+    You are now ready to start logging. Simply run 'bogg' from your command line
+    to start logging!
 
 Some commands:
 
@@ -78,3 +105,4 @@ Some commands:
 #### Log 350 calories exercised via bike ride
 
     bogg --exercise 350 "bike ride"
+
