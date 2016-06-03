@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.http import Http404
 from rest_framework import viewsets, permissions, status, renderers
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
 
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
@@ -69,3 +69,12 @@ class BoggerView(RetrieveUpdateAPIView):
             except ValueError:
                 return get_object_or_404(User, username=pk)
 
+
+class CreateBoggerView(CreateAPIView):
+    """
+    API endpoint that allows a user to be viewed or edited.
+    """
+    serializer_class = UserSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    queryset = User.objects.all()
