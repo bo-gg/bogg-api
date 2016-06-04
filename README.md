@@ -82,6 +82,33 @@ Some commands:
 
     bogg --exercise 350 "bike ride"
 
+Or use interactive mode:
+
+    # bogg
+
+    1: Log calories eaten.
+    2: Log calories exercised.
+    3: Record a new weight measurement.
+    4: Log an item from your quick-lookups.
+    5: Add an item to your quick-lookups.
+    6: View status for today.
+    7: View a log of the past few days.
+    8: Edit configuration.
+
+    ?: This menu.
+    Q: Quit.
+
+    Command? 1
+
+    Number of calories: 300
+    What did you eat?: sandwich
+    Logged 300 calories.
+
+       - You have eaten 1200 calories.
+       - You have burned off 0 calories.
+
+    You can eat 942.0 more calories today.
+
 
 Completely Open, Completely Private
 -----------------------------------
