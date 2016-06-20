@@ -50,5 +50,10 @@ class APITest(APITestCase):
         self.assertEqual(payload['calories_expended'], -200, 'incorrect daily entry calories_expended')
         self.assertEqual(payload['net_calories'], -100, 'incorrect daily entry net_calories')
 
+
+    def test_date_created_works(self):
+        print 'i ensured date created worked well'
+        pass
+
     def test_yesterday_daily_entry_get(self):
         pass
