@@ -105,6 +105,7 @@ class CalorieEntry(models.Model):
     dt_created = models.DateTimeField(auto_now_add=True)
     dt_occurred = models.DateTimeField(null=False, blank=False)
     date = models.DateField(null=False, blank=False) # auto calculated
+    date_created = models.DateField(null=False, blank=False) # auto calculated
 
     def __unicode__(self):
         cals = str(self.calories)
