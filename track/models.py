@@ -90,6 +90,7 @@ class Bogger(models.Model):
     def __unicode__(self):
         return str(self.user)
 
+
 @receiver(post_save, sender=User)
 def user_creates_bogger(sender, **kwargs):
     instance = kwargs['instance']
@@ -104,7 +105,7 @@ class CalorieEntry(models.Model):
     note = models.CharField(max_length=255)
     dt_created = models.DateTimeField(auto_now_add=True)
     dt_occurred = models.DateTimeField(null=False, blank=False)
-    date = models.DateField(null=False, blank=False) # auto calculated
+    date = models.DateField(null=False, blank=False)  # auto calculated
 
     def __unicode__(self):
         cals = str(self.calories)
@@ -118,7 +119,7 @@ class CalorieEntry(models.Model):
 
     def save(self, *args, **kwargs):
         self.date = self.dt_occurred.date()
-        super(CalorieEntry, self).save(*args, **kwargs) # Call the "real" save() method.
+        super(CalorieEntry, self).save(*args, **kwargs)  # Call the "real" save() method.
 
     class Meta:
         get_latest_by = 'dt_occurred'
@@ -174,7 +175,6 @@ def goal_updates_bogger(sender, **kwargs):
     bogger.save()
 
 
-
 class Measurement(models.Model):
     '''
     Activity Factor
@@ -188,7 +188,7 @@ class Measurement(models.Model):
     date = models.DateField(null=False, blank=False)
 
     height = models.FloatField(help_text="Height in Inches", null=True, blank=True)
-    weight = models.FloatField(null=True, blank=True)
+    weight = models.FloatField(help_text="Weight in Pounds", null=True, blank=True)
     activity_factor = models.FloatField(choices=Choices.ACTIVITY_FACTOR_CHOICES, null=True, blank=True)
 
     dt_created = models.DateTimeField(auto_now_add=True)

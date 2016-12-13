@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth.models import User
 
-from track.models import Choices, Bogger, CalorieEntry, DailyEntry, Measurement, Goal
+from track.models import Choices, CalorieEntry, DailyEntry, Measurement, Goal
 
 
 class BoggerTest(TestCase):
@@ -89,7 +89,7 @@ class MeasurementTest(TestCase):
     def test_measurement_update(self):
         self.assertEqual(self.dude.bogger.current_weight, self.old_measurement.weight)
         new_weight = 175
-        new_measurement = Measurement.objects.create(
+        Measurement.objects.create(
             bogger=self.dude.bogger,
             date=self.today,
             height=(6 * 12) + 2,    # 6'2"
@@ -99,7 +99,7 @@ class MeasurementTest(TestCase):
         self.assertEqual(self.dude.bogger.current_weight, new_weight)
 
     def test_get_measurement_for_date(self):
-        new_measurement = Measurement.objects.create(
+        Measurement.objects.create(
             bogger=self.dude.bogger,
             date=self.today,
             height=(6 * 12) + 2,    # 6'2"
@@ -136,7 +136,7 @@ class GoalTest(TestCase):
         self.assertEqual(self.dude.bogger.current_calorie_goal, 1267)
 
     def test_goal_update(self):
-        new_goal = Goal.objects.create(
+        Goal.objects.create(
             bogger=self.dude.bogger,
             date=self.today,
             daily_weight_goal=(1. / 7.),
@@ -164,14 +164,14 @@ class DailyEntryTest(TestCase):
             calories=300,
             dt_occurred=timezone.now(),
             note='Silica gel',
-            entry_type = Choices.CONSUMED
+            entry_type=Choices.CONSUMED
         )
         self.run_entry = CalorieEntry.objects.create(
             bogger=self.dude.bogger,
             calories=-100,
             dt_occurred=timezone.now(),
             note='Ran from police',
-            entry_type = Choices.EXPENDED
+            entry_type=Choices.EXPENDED
         )
 
     def test_daily_entry_creation(self):

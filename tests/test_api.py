@@ -1,15 +1,12 @@
-from unittest import skip
-
 from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.test import APIRequestFactory, APITestCase
+from rest_framework.test import APITestCase
 
 from track.models import CalorieEntry
 
 
 class APITest(APITestCase):
-
     def setUp(self):
         self.admin_username = 'admin@admin.com'
         self.admin_password = 'testadmin'
@@ -29,7 +26,6 @@ class APITest(APITestCase):
             'note': 'ran from hungry wolves',
             'dt_occurred': str(timezone.now())
         }
-
 
     def test_consumption_post(self):
         """ Ensure we can post a plan, and that it is returned in a queued state. """

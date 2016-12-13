@@ -1,17 +1,11 @@
-from django.shortcuts import render, get_object_or_404
-
-from django.contrib.auth.models import User, Group
-from django.http import Http404
-from rest_framework import viewsets, permissions, status, renderers
-from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
+from rest_framework import viewsets, permissions
 from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
 
-from rest_framework.response import Response
-from rest_framework.decorators import detail_route
-
 from track.models import Bogger, CalorieEntry, DailyEntry, Goal
-from track.serializers import UserSerializer, GroupSerializer, BoggerSerializer, \
-                              CalorieEntrySerializer, DailyEntrySerializer, GoalSerializer
+from track.serializers import UserSerializer, BoggerSerializer, CalorieEntrySerializer, DailyEntrySerializer, \
+        GoalSerializer
 from track.permissions import IsOwnerOrStaff
 
 
