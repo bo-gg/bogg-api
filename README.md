@@ -12,7 +12,7 @@
 I needed a dead simple way to log my activity and my calorie
 intake.
 
-[![Build Status](https://travis-ci.org/bo-gg/bogg.svg?branch=master)](https://travis-ci.org/bo-gg/bogg)
+[![Build Status](https://travis-ci.org/bo-gg/bogg-api.svg?branch=master)](https://travis-ci.org/bo-gg/bogg-api.svg?branch=master)
 
 It is meant to make tracking your daily calorie intake simple.
 -----------------------------------------------------------
